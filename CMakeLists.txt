@@ -11,7 +11,9 @@
 cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 
 # In-source builds are disabled.
+#如果变量CMAKE_CURRENT_SOURCE_DIR（CMakeLists.txt所在的目录）值等于CMAKE_CURRENT_BINARY_DIR（当前CMakeLists.txt文件的二进制目录）值
 if("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_BINARY_DIR}")
+  #显示message中的消息
   message(
     FATAL_ERROR
       "CMake generation is not possible within the source directory!"
@@ -25,15 +27,21 @@ endif()
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
+#EXECUTABLE_OUTPUT_PATH执行输出路径
 set(EXECUTABLE_OUTPUT_PATH "${CMAKE_BINARY_DIR}/bin")
+#运行时输出目录
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}")
 
 # Use solution folders.
+# 设置全局属性
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMake Targets")
 
+#如果cmake编译器版本不小于
 if(NOT ${CMAKE_VERSION} VERSION_LESS "3.15.0")
+  #是win32位环境
   if(WIN32)
+    # 保证构造版本的一致性
     cmake_policy(SET CMP0091 NEW)
     message(STATUS "Setting policy CMP0091 to NEW")
   endif()
@@ -48,17 +56,23 @@ endif()
 project(tesseract C CXX)
 
 # Get version with components from VERSION file.
+#从VERSION文件中读取信息放到参数VERSION_PLAIN中
 file(STRINGS "VERSION" VERSION_PLAIN)
+
+#字符串的一些操作
 string(REGEX REPLACE "^([^.]*)\\..*" "\\1" VERSION_MAJOR ${VERSION_PLAIN})
 string(REGEX REPLACE "^[^.]*\\.([^.]*)\\..*" "\\1" VERSION_MINOR
                      ${VERSION_PLAIN})
 string(REGEX REPLACE "^[^.]*\\.[^.]*\\.([0-9]*).*" "\\1" VERSION_PATCH
                      ${VERSION_PLAIN})
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
+  #执行命令
   execute_process(COMMAND git --git-dir ${CMAKE_CURRENT_SOURCE_DIR}/.git
                           describe --abbrev=4 OUTPUT_VARIABLE GIT_REV)
   string(REGEX REPLACE "\n$" "" PACKAGE_VERSION "${GIT_REV}")
 endif()
+
+#没有过包版本，设置包版本
 if(NOT PACKAGE_VERSION)
   set(PACKAGE_VERSION ${VERSION_PLAIN})
 endif()
@@ -83,6 +97,8 @@ if(WIN32)
 else()
   option(SW_BUILD "Build with sw" OFF)
 endif()
+
+#设置编译选项，参数名 描述 开关值
 option(OPENMP_BUILD "Build with openmp support" OFF) # see issue #1662
 option(GRAPHICS_DISABLED "Disable disable graphics (ScrollView)" OFF)
 option(DISABLED_LEGACY_ENGINE "Disable the legacy OCR engine" OFF)
@@ -112,10 +128,12 @@ endif()
 #
 # ##############################################################################
 
+#如果cmake编译类型是Clang
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(CLANG 1)
 endif()
 
+#没有编译构建类型，则进行设置
 if(NOT CMAKE_BUILD_TYPE)
   message(STATUS "Setting build type to 'Release' as none was specified.")
   set(CMAKE_BUILD_TYPE
